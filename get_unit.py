@@ -18,9 +18,17 @@ class UnitParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == 'input':
             attr_dict = dict(attrs)
+            if 'type' in attr_dict and 'hidden' == attr_dict['type']:
+                return
             if 'name' in attr_dict and attr_dict['name'].startswith('Data.') and 'value' in attr_dict:
+                value = attr_dict['value']
+                name = attr_dict['name'][5:]
+                if attr_dict['type'] == 'checkbox':
+                    #print ("holy fuck, " + name + " is a checkbox!")
+                    value = True if 'checked' in attr_dict else False
+                    #print ("Can we really believe the value is " + str(value) + "?")
                 # Store data attributes in the unit dictionary
-                self.unit[attr_dict['name'][5:]] = attr_dict['value']
+                self.unit[name] = value
         elif tag == 'textarea':
             attr_dict = dict(attrs)
             if 'name' in attr_dict and attr_dict['name'].startswith('Data.'):
@@ -45,6 +53,7 @@ def get_unit(unit_number: int):
 def parse_unit_response(unit_number: int, unit_response: str):
     unit_parser = UnitParser(unit_number)
     unit_parser.feed(unit_response)
+    #print ("UnitParser.unit: " + str(unit_parser.unit))
     return unit_parser.unit
 
 # Function to write unit data to a CSV file
@@ -65,7 +74,7 @@ def write_unit(units: list):
             print('Failed to write units: {}'.format(failed_units))
 
 if __name__ == '__main__':
-    begin_unit = 4624
+    begin_unit = 2
     end_unit = 9529
     units = []
 
